@@ -4,6 +4,8 @@
 # Pull latest changes from the repository
 git pull origin main
 
+echo "Running deploy.sh script"
+
 # Full path to the 'docker' executable
 DOCKER_EXECUTABLE=/usr/bin/docker
 
