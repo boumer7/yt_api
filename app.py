@@ -33,12 +33,15 @@ def webhook():
 
     if event_type == 'push':
         try:
-            script_path = os.path.join(os.path.dirname(__file__), 'deploy.sh')
-            result = subprocess.run(["bash", script_path], check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            return f"Webhook received and deployment triggered. Output: {result.stdout}", 200
+            process = subprocess.run(["./deploy.sh"], check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("Deploy Script Output (stdout):")
+            print(process.stdout.decode('utf-8'))
+            print("Deploy Script Errors (stderr):")
+            print(process.stderr.decode('utf-8'))
+            return "Webhook received and deployment triggered."
         except subprocess.CalledProcessError as e:
             return f"Error triggering deployment: {str(e)}", 500
-            
+    
     return "Webhook received, but no action taken."
 
 @app.route('/download_audio', methods=['POST'])
