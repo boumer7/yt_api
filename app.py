@@ -129,6 +129,7 @@ def download_video():
 def download_subtitles():
     video_link = request.args.get('link')
     lang = request.args.get('lang', 'en')  # Default to English if not provided
+    output_format = request.args.get('format', 'json')  # Default to SRT format if not provided
 
     ydl_opts = {
         'skip_download': True,  # Skip video download
@@ -153,10 +154,20 @@ def download_subtitles():
                 subtitle_url = subtitles
 
             subtitle_file = requests.get(subtitle_url).content
-            response = make_response(subtitle_file)
-            response.headers['Content-Type'] = 'text/plain'
-            response.headers['Content-Disposition'] = f'attachment; filename=subtitles_{lang}.srt'
-            return response
+
+            if output_format == 'json':
+                subtitle_data = {
+                    'language': lang,
+                    'subtitles': subtitle_file.decode('utf-8')
+                }
+                return jsonify(subtitle_data)
+            elif output_format == 'srt':
+                response = make_response(subtitle_file)
+                response.headers['Content-Type'] = 'text/plain'
+                response.headers['Content-Disposition'] = f'attachment; filename=subtitles_{lang}.{output_format}'
+                return response
+            else:
+                return "Invalid format parameter. Use 'json' or 'srt'."
 
     except Exception as e:
         return f"Error downloading subtitles: {str(e)}", 500
