@@ -129,76 +129,57 @@ def extract_subtitles_by_time(subtitle_text, start_time, end_time):
     lines = subtitle_text.strip().split('\n')
     extracted_lines = []
 
-    start_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(start_time.split(':'))))
-    end_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(end_time.split(':'))))
-
     current_time = None
     in_range = False
 
     for line in lines:
         if '-->' in line:
             current_time = line.split('-->')[0].strip()
-            current_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(current_time.split(':'))))
-            if start_seconds <= current_seconds <= end_seconds:
+            if current_time == start_time:
                 in_range = True
-            else:
-                in_range = False
         if in_range:
             extracted_lines.append(line)
+            if current_time == end_time:
+                break
 
     return '\n'.join(extracted_lines)
 
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
-    lang = request.args.get('lang', 'en')  # Default to English if not provided
-    output_format = request.args.get('format', 'json')  # Default to SRT format if not provided
-    start_time = request.args.get('start_time')  # Start time for subtitles extraction (in HH:MM:SS format)
-    end_time = request.args.get('end_time')  # End time for subtitles extraction (in HH:MM:SS format)
-
-    ydl_opts = {
-        'skip_download': True,  # Skip video download
-        'writesubtitles': True,  # Write subtitles to a file
-        'subtitleslangs': [lang],  # Request subtitles for the specified language
-        'subtitlesformat': 'vtt',  # Force VTT subtitles format for time-based extraction
-    }
+    start_time = request.args.get('start_time')
+    end_time = request.args.get('end_time')
 
     try:
+        ydl_opts = {
+            'skip_download': True,
+            'writesubtitles': True,
+            'writeautomaticsub': True,
+            'subtitleslangs': 'en',
+            'subtitlesformat': 'srv1',
+        }
+
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(video_link, download=False)
 
-            if 'subtitles' in info_dict and lang in info_dict['subtitles']:
-                subtitles = info_dict['subtitles'][lang]
-            elif 'automatic_captions' in info_dict and lang in info_dict['automatic_captions']:
-                subtitles = info_dict['automatic_captions'][lang]
-            else:
-                return f"No subtitles found for language: {lang}. Using automatic subtitles as a last resort."
+        subtitles = info_dict.get('subtitles', {}).get('en')
+        
+        if isinstance(subtitles, list):
+            subtitle_url = subtitles[0]['url']
+        else:
+            subtitle_url = subtitles
 
-            if isinstance(subtitles, list):
-                subtitle_url = subtitles[0]['url']
-            else:
-                subtitle_url = subtitles
+        subtitle_text = requests.get(subtitle_url).text
 
-            subtitle_text = requests.get(subtitle_url).text
+        if start_time and end_time:
+            extracted_subtitles = extract_subtitles_by_time(subtitle_text, start_time, end_time)
+        else:
+            extracted_subtitles = subtitle_text
 
-            if start_time and end_time:
-                extracted_subtitles = extract_subtitles_by_time(subtitle_text, start_time, end_time)
-            else:
-                extracted_subtitles = subtitle_text
-
-            if output_format == 'json':
-                subtitle_data = {
-                    'language': lang,
-                    'subtitles': extracted_subtitles,
-                }
-                return jsonify(subtitle_data)
-            elif output_format == 'srt':
-                response = make_response(extracted_subtitles)
-                response.headers['Content-Type'] = 'text/plain'
-                response.headers['Content-Disposition'] = f'attachment; filename=subtitles_{lang}.{output_format}'
-                return response
-            else:
-                return "Invalid format parameter. Use 'json' or 'srt'."
+        return jsonify({
+            "language": "en",
+            "subtitles": extracted_subtitles
+        })
 
     except Exception as e:
         return f"Error downloading subtitles: {str(e)}", 500
