@@ -126,6 +126,7 @@ def download_video():
     return redirect(video_url)
 
 @app.route('/download_subtitles', methods=['GET'])
+@app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
     lang = request.args.get('lang', 'en')  # Default to English if not provided
@@ -145,7 +146,12 @@ def download_subtitles():
                 subtitle_url = info_dict['subtitles'][lang]
             else:
                 # If not found, use automatic subtitles
-                subtitle_url = info_dict.get('automatic_captions', {}).get(lang, {}).get('url')
+                subtitle_url = None
+                if 'automatic_captions' in info_dict:
+                    for auto_lang, auto_info in info_dict['automatic_captions'].items():
+                        if auto_info['ext'] == 'vtt' and auto_info['language'] == lang:
+                            subtitle_url = auto_info['url']
+                            break
 
                 if not subtitle_url:
                     return f"No subtitles found for language: {lang}. Using automatic subtitles as a last resort."
@@ -159,7 +165,6 @@ def download_subtitles():
 
     except Exception as e:
         return f"Error downloading subtitles: {str(e)}", 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
