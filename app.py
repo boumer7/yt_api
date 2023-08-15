@@ -4,7 +4,8 @@ import hmac
 import hashlib
 from subprocess import run
 import subprocess
-from flask import Flask, request, jsonify, send_file, redirect
+from flask import Flask, request, jsonify, send_file, redirect, make_response
+import requests
 import yt_dlp as youtube_dl
 import logging
 
@@ -127,26 +128,38 @@ def download_video():
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
-    lang = request.args.get('lang', 'en')  # Default to English subtitles
+    lang = request.args.get('lang', 'en')  # Default to English if not provided
 
     ydl_opts = {
-        'writesubtitles': True,
-        'writeautomaticsub': True,
-        'subtitleslangs': [lang],
-        'skip_download': True,
+        'skip_download': True,  # Skip video download
+        'writesubtitles': True,  # Write subtitles to a file
+        'subtitleslangs': [lang],  # Request subtitles for the specified language
     }
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(video_link, download=False)
-        subtitles = info_dict.get('subtitles', {})
-        selected_subtitles = subtitles.get(lang) or subtitles.get('auto')
+    try:
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(video_link, download=False)
 
-        if not selected_subtitles:
-            return f"No subtitles found for language: {lang}. Using automatic subtitles."
+            # Check if the video has subtitles for the specified language
+            if 'subtitles' in info_dict and lang in info_dict['subtitles']:
+                subtitle_url = info_dict['subtitles'][lang]
+            else:
+                # If not found, use automatic subtitles
+                subtitle_url = info_dict.get('automatic_captions', {}).get(lang, {}).get('url')
 
-        subtitles_url = selected_subtitles[0]['url']
+                if not subtitle_url:
+                    return f"No subtitles found for language: {lang}. Using automatic subtitles as a last resort."
 
-    return redirect(subtitles_url)
+            # Download the subtitles file and return it as a response
+            subtitle_file = requests.get(subtitle_url).content
+            response = make_response(subtitle_file)
+            response.headers['Content-Type'] = 'text/plain'
+            response.headers['Content-Disposition'] = f'attachment; filename=subtitles_{lang}.srt'
+            return response
+
+    except Exception as e:
+        return f"Error downloading subtitles: {str(e)}", 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
