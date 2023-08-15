@@ -53,21 +53,17 @@ def webhook():
 @app.route('/download_audio', methods=['GET'])
 def download_audio():
     link = request.args.get('link')
-    format_code = request.args.get('format', 'bestaudio')  # Default to 'bestaudio' if not provided
+    quality = request.args.get('quality', 'bestaudio')  # Default to 'bestaudio' if not provided
 
     ydl_opts = {
-        'format': format_code,
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',  # Convert to MP3 format
-        }],
+        'format': quality,
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(link, download=False)
         audio_url = info_dict['url']
 
-    return send_file(audio_url, as_attachment=True)
+    return redirect(audio_url)
 
 @app.route('/download_video', methods=['GET'])
 def download_video():
