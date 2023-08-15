@@ -33,11 +33,13 @@ def webhook():
 
     if event_type == 'push':
         try:
-            print("Running deploy.sh script...")
-            result = os.system("/home/aleks/yt_api/deploy.sh")
-            print("Script execution result:", result)
+            print("Current working directory:", os.getcwd())
+            result = subprocess.run(["./deploy.sh"], check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("Script execution result:", result.returncode)
+            print("Script stdout:", result.stdout.decode())
+            print("Script stderr:", result.stderr.decode())
             return "Webhook received and deployment triggered."
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             return f"Error triggering deployment: {str(e)}", 500
     
     return "Webhook received, but no action taken."
