@@ -75,7 +75,7 @@ def download_audio():
 @app.route('/download_video', methods=['GET'])
 def download_video():
     link = request.args.get('link')
-    format_code = request.args.get('format', 'best')  # Use 'best' as default
+    format_code = request.args.get('format', 'best')  # Default to 'best' if not provided
 
     try:
         ydl_opts = {
@@ -84,12 +84,6 @@ def download_video():
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            formats = ydl.extract_info(link, download=False)['formats']
-            valid_format_codes = [f['format_id'] for f in formats]
-            
-            if format_code not in valid_format_codes:
-                return jsonify({"status": "error", "message": "Invalid format code"})
-
             info_dict = ydl.extract_info(link, download=True)
             video_filename = f"downloads/{info_dict['title']}.mp4"
 
