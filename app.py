@@ -16,23 +16,19 @@ SECRET_TOKEN = os.environ.get('SECRET_TOKEN')
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    # Validate the incoming request using the secret token
     signature = request.headers.get('X-Hub-Signature')
+    event_type = request.headers.get('X-GitHub-Event')
+    
     if not is_valid_signature(request.data, signature, SECRET_TOKEN):
         return "Unauthorized", 401
 
-    # Get the event type from headers
-    event_type = request.headers.get('X-GitHub-Event')
-
-    print(event_type)
-    # Check if it's a push event
     if event_type == 'push':
         try:
-            subprocess.run(["./deploy.sh"], check=True, shell=True)
+            subprocess.run(["./deploy.sh"], check=True, shell=True, stdout=sys.stderr, stderr=sys.stderr)
             return "Webhook received and deployment triggered."
         except subprocess.CalledProcessError as e:
             return f"Error triggering deployment: {str(e)}", 500
-
+    
     return "Webhook received, but no action taken."
 
 def is_valid_signature(data, signature, secret):
