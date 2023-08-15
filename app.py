@@ -124,6 +124,30 @@ def download_video():
 
     return redirect(video_url)
 
+@app.route('/download_subtitles', methods=['GET'])
+def download_subtitles():
+    video_link = request.args.get('link')
+    lang = request.args.get('lang', 'en')  # Default to English subtitles
+
+    ydl_opts = {
+        'writesubtitles': True,
+        'writeautomaticsub': True,
+        'subtitleslangs': [lang],
+        'skip_download': True,
+    }
+
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(video_link, download=False)
+        subtitles = info_dict.get('subtitles', {})
+        selected_subtitles = subtitles.get(lang) or subtitles.get('auto')
+
+        if not selected_subtitles:
+            return f"No subtitles found for language: {lang}."
+
+        subtitles_url = selected_subtitles[0]['url']
+
+    return redirect(subtitles_url)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 
