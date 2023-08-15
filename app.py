@@ -166,28 +166,29 @@ def download_subtitles():
 
         subtitles = info_dict.get('subtitles', {}).get('en')
 
-        if isinstance(subtitles, list):
-            subtitle_url = subtitles[0]['url']
+        if subtitles:
+            if isinstance(subtitles, list):
+                subtitle_url = subtitles[0]['url']
+            else:
+                subtitle_url = subtitles
+
+            subtitle_text = requests.get(subtitle_url).text
+
+            if start_time and end_time and subtitle_text:
+                extracted_subtitles = extract_subtitles_by_time(subtitle_text, start_time, end_time)
+            else:
+                extracted_subtitles = subtitle_text
+
+            return jsonify({
+                "language": "en",
+                "subtitles": extracted_subtitles
+            })
         else:
-            subtitle_url = subtitles
-
-        subtitle_text = requests.get(subtitle_url).text
-
-        start_time_seconds = time_to_seconds(start_time)
-        end_time_seconds = time_to_seconds(end_time)
-
-        if start_time and end_time:
-            extracted_subtitles = extract_subtitles_by_time(subtitle_text, start_time, end_time)
-        else:
-            extracted_subtitles = subtitle_text
-
-        return jsonify({
-            "language": "en",
-            "subtitles": extracted_subtitles
-        })
+            return "No English subtitles available for the provided link."
 
     except Exception as e:
         return f"Error downloading subtitles: {str(e)}", 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
