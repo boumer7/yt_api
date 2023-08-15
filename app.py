@@ -50,47 +50,59 @@ def webhook():
     
     return "Webhook received, but no action taken."
 
-@app.route('/download_audio', methods=['POST'])
+@app.route('/download_audio', methods=['GET', 'POST'])
 def download_audio():
-    data = request.json
-    video_url = data.get('video_url')
+    if request.method == 'GET':
+        # Handle GET request, return a form or instructions for audio download
+        return "This endpoint supports both GET and POST methods for audio download."
 
-    try:
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'extractaudio': True,
-            'audioformat': 'mp3',
-            'outtmpl': 'downloads/%(title)s.%(ext)s',
-        }
+    if request.method == 'POST':
+        data = request.json
+        link = data.get('link')
+        quality = data.get('quality', 'bestaudio/best')
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(video_url, download=True)
-            audio_filepath = f"downloads/{info_dict['title']}.mp3"
+        try:
+            ydl_opts = {
+                'format': quality,
+                'extractaudio': True,
+                'audioformat': 'mp3',
+                'outtmpl': 'downloads/%(title)s.%(ext)s',
+            }
 
-        return jsonify({"status": "success", "message": "Audio downloaded successfully", "audio_filepath": audio_filepath})
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(link, download=True)
+                audio_filepath = f"downloads/{info_dict['title']}.mp3"
 
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
+            return jsonify({"status": "success", "message": "Audio downloaded successfully", "audio_filepath": audio_filepath})
 
-@app.route('/download_video', methods=['POST'])
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
+
+@app.route('/download_video', methods=['GET', 'POST'])
 def download_video():
-    data = request.json
-    video_url = data.get('video_url')
+    if request.method == 'GET':
+        # Handle GET request, return a form or instructions for video download
+        return "This endpoint supports both GET and POST methods for video download."
 
-    try:
-        ydl_opts = {
-            'format': 'best',
-            'outtmpl': 'downloads/%(title)s.%(ext)s',
-        }
+    if request.method == 'POST':
+        data = request.json
+        link = data.get('link')
+        quality = data.get('quality', 'best')
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(video_url, download=True)
-            video_filepath = f"downloads/{info_dict['title']}.mp4"
+        try:
+            ydl_opts = {
+                'format': quality,
+                'outtmpl': 'downloads/%(title)s.%(ext)s',
+            }
 
-        return jsonify({"status": "success", "message": "Video downloaded successfully", "video_filepath": video_filepath})
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(link, download=True)
+                video_filepath = f"downloads/{info_dict['title']}.mp4"
 
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
+            return jsonify({"status": "success", "message": "Video downloaded successfully", "video_filepath": video_filepath})
+
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
