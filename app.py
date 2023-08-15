@@ -90,19 +90,19 @@ def download_video():
     return redirect(video_url)
 
 @app.route('/download_clip', methods=['GET'])
-def download_youtube_clip():
+def download_clip():
     link = request.args.get('link')
-    format_code = request.args.get('format', 'best')  # Default to 'best' if not provided
 
     ydl_opts = {
-        'format': format_code,
+        'format': 'best',
+        'extract-clip': True,
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(link, download=False)
-        youtube_clip_url = info_dict['url']
+        clip_url = info_dict['url']
 
-    return redirect(youtube_clip_url)
+    return redirect(clip_url)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
