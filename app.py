@@ -33,7 +33,7 @@ def webhook():
 
     if event_type == 'push':
         try:
-            os.system("./deploy.sh")
+            os.system("/home/aleks/yt_api/deploy.sh")
             return "Webhook received and deployment triggered."
         except Exception as e:
             return f"Error triggering deployment: {str(e)}", 500
