@@ -50,59 +50,47 @@ def webhook():
     
     return "Webhook received, but no action taken."
 
-@app.route('/download_audio', methods=['GET', 'POST'])
+@app.route('/download_audio', methods=['GET'])
 def download_audio():
-    if request.method == 'GET':
-        # Handle GET request, return a form or instructions for audio download
-        return "This endpoint supports both GET and POST methods for audio download."
+    link = request.args.get('link')
+    quality = request.args.get('quality', 'high')
 
-    if request.method == 'POST':
-        data = request.json
-        link = data.get('link')
-        quality = data.get('quality', 'bestaudio/best')
+    try:
+        ydl_opts = {
+            'format': f'bestaudio/{quality}',
+            'extractaudio': True,
+            'audioformat': 'mp3',
+            'outtmpl': 'downloads/%(title)s.%(ext)s',
+        }
 
-        try:
-            ydl_opts = {
-                'format': quality,
-                'extractaudio': True,
-                'audioformat': 'mp3',
-                'outtmpl': 'downloads/%(title)s.%(ext)s',
-            }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(link, download=True)
+            audio_filename = f"downloads/{info_dict['title']}.mp3"
 
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(link, download=True)
-                audio_filepath = f"downloads/{info_dict['title']}.mp3"
+        return send_file(audio_filename, as_attachment=True)
 
-            return jsonify({"status": "success", "message": "Audio downloaded successfully", "audio_filepath": audio_filepath})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
-        except Exception as e:
-            return jsonify({"status": "error", "message": str(e)})
-
-@app.route('/download_video', methods=['GET', 'POST'])
+@app.route('/download_video', methods=['GET'])
 def download_video():
-    if request.method == 'GET':
-        # Handle GET request, return a form or instructions for video download
-        return "This endpoint supports both GET and POST methods for video download."
+    link = request.args.get('link')
+    quality = request.args.get('quality', 'high')
 
-    if request.method == 'POST':
-        data = request.json
-        link = data.get('link')
-        quality = data.get('quality', 'best')
+    try:
+        ydl_opts = {
+            'format': quality,
+            'outtmpl': 'downloads/%(title)s.%(ext)s',
+        }
 
-        try:
-            ydl_opts = {
-                'format': quality,
-                'outtmpl': 'downloads/%(title)s.%(ext)s',
-            }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(link, download=True)
+            video_filename = f"downloads/{info_dict['title']}.mp4"
 
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(link, download=True)
-                video_filepath = f"downloads/{info_dict['title']}.mp4"
+        return send_file(video_filename, as_attachment=True)
 
-            return jsonify({"status": "success", "message": "Video downloaded successfully", "video_filepath": video_filepath})
-
-        except Exception as e:
-            return jsonify({"status": "error", "message": str(e)})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
