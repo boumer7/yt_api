@@ -1,13 +1,17 @@
+#!/bin/bash
 
 # Pull latest changes from the repository
 git pull origin main
 
+# Full path to the 'docker' executable
+DOCKER_EXECUTABLE=/usr/bin/docker
+
 # Rebuild the Docker image
-docker build -t yt-api .
+$DOCKER_EXECUTABLE build -t yt-api .
 
 # Stop and remove the existing container
-docker stop yt-api-container
-docker rm yt-api-container
+$DOCKER_EXECUTABLE stop yt-api-container
+$DOCKER_EXECUTABLE rm yt-api-container
 
 # Run the updated container
-docker run -d --name yt-api-container -p 5000:5000 yt-api
+$DOCKER_EXECUTABLE run -d --name yt-api-container -p 5000:5000 yt-api
