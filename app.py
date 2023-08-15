@@ -33,7 +33,9 @@ def webhook():
 
     if event_type == 'push':
         try:
-            os.system("/home/aleks/yt_api/deploy.sh")
+            print("Running deploy.sh script...")
+            result = os.system("/home/aleks/yt_api/deploy.sh")
+            print("Script execution result:", result)
             return "Webhook received and deployment triggered."
         except Exception as e:
             return f"Error triggering deployment: {str(e)}", 500
