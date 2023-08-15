@@ -61,7 +61,16 @@ def download_audio():
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(link, download=False)
-        audio_url = info_dict['url']
+        audio_url = None
+        
+        # Find a direct audio URL (not .m3u8)
+        for f in info_dict['formats']:
+            if f['acodec'] != 'none' and 'url' in f:
+                audio_url = f['url']
+                break
+        
+        if not audio_url:
+            return "No playable audio format found."
 
     return redirect(audio_url)
 
