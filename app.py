@@ -20,6 +20,8 @@ def is_valid_signature(data, signature, secret):
     calculated_signature = 'sha1=' + hmac.new(secret.encode(), data, hashlib.sha1).hexdigest()
     return hmac.compare_digest(calculated_signature, signature)
 
+app.logger.setLevel(logging.DEBUG)
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     signature = request.headers.get('X-Hub-Signature')
