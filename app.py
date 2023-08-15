@@ -84,17 +84,18 @@ def download_audio():
 @app.route('/download_video', methods=['GET'])
 def download_video():
     link = request.args.get('link')
-    quality = request.args.get('quality', 'best')  # Default to 'best' if not provided
+    quality = request.args.get('quality', 'high')  # Default to 'high' if not provided
 
     if quality == 'low':
-        quality = 'worstvideo'
+        quality = '480'
     elif quality == 'medium':
-        quality = '135'
+        quality = '720'
     elif quality == 'high':
-        quality = 'best'
+        quality = '1080'
     
     ydl_opts = {
-        'format': quality,
+        'format': f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]',
+        '--embed-subs': True,  # Embed subtitles (include audio)
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
