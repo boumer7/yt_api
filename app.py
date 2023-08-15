@@ -14,6 +14,10 @@ app = Flask(__name__)
 # Retrieve the secret token from the environment variable
 SECRET_TOKEN = os.environ.get('SECRET_TOKEN')
 
+def is_valid_signature(data, signature, secret):
+    calculated_signature = 'sha1=' + hmac.new(secret.encode(), data, hashlib.sha1).hexdigest()
+    return hmac.compare_digest(calculated_signature, signature)
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     signature = request.headers.get('X-Hub-Signature')
@@ -30,10 +34,6 @@ def webhook():
             return f"Error triggering deployment: {str(e)}", 500
     
     return "Webhook received, but no action taken."
-
-def is_valid_signature(data, signature, secret):
-    calculated_signature = 'sha1=' + hmac.new(secret.encode(), data, hashlib.sha1).hexdigest()
-    return hmac.compare_digest(calculated_signature, signature)
 
 @app.route('/download_audio', methods=['POST'])
 def download_audio():
