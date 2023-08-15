@@ -163,7 +163,7 @@ def download_subtitles():
             info_dict = ydl.extract_info(video_link, download=False)
 
         subtitles = info_dict.get('subtitles', {}).get('en')
-        
+
         if isinstance(subtitles, list):
             subtitle_url = subtitles[0]['url']
         else:
