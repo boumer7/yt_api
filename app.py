@@ -9,6 +9,7 @@ import requests
 import yt_dlp as youtube_dl
 import logging
 import json
+import html
 
 from dotenv import load_dotenv
 
