@@ -33,13 +33,12 @@ def webhook():
 
     if event_type == 'push':
         try:
-            subprocess.run(["./deploy.sh"], check=True, shell=True, stdout=sys.stderr, stderr=sys.stderr)
+            os.system("./deploy.sh")
             return "Webhook received and deployment triggered."
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             return f"Error triggering deployment: {str(e)}", 500
     
     return "Webhook received, but no action taken."
-
 
 @app.route('/download_audio', methods=['POST'])
 def download_audio():
