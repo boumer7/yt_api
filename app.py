@@ -82,7 +82,7 @@ def download_video():
         info_dict = ydl.extract_info(link, download=False)
         video_url = info_dict['url']
 
-    return send_file(video_url, as_attachment=True)
+    return redirect(video_url)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
