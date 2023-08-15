@@ -31,24 +31,14 @@ def webhook():
     if not is_valid_signature(request.data, signature, SECRET_TOKEN):
         return "Unauthorized", 401
 
-   if event_type == 'push':
+    if event_type == 'push':
         try:
             script_path = os.path.join(os.path.dirname(__file__), 'deploy.sh')
-            print("Script path:", script_path)
-            
-            # Open a subprocess and capture the output
-            process = os.popen(f'/bin/bash {script_path}')
-            output = process.read()
-            process.close()
-            
-            print("Script output:", output)
-            
-            return "Webhook received and deployment triggered."
-        except Exception as e:
+            result = subprocess.run(["bash", script_path], check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return f"Webhook received and deployment triggered. Output: {result.stdout}", 200
+        except subprocess.CalledProcessError as e:
             return f"Error triggering deployment: {str(e)}", 500
-
-
-
+            
     return "Webhook received, but no action taken."
 
 @app.route('/download_audio', methods=['POST'])
