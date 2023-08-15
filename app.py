@@ -14,7 +14,6 @@ app = Flask(__name__)
 # Retrieve the secret token from the environment variable
 SECRET_TOKEN = os.environ.get('SECRET_TOKEN')
 
-
 @app.route('/webhook', methods=['POST'])
 def webhook():
     # Validate the incoming request using the secret token
@@ -22,13 +21,13 @@ def webhook():
     if not is_valid_signature(request.data, signature, SECRET_TOKEN):
         return "Unauthorized", 401
 
-    # Parse the payload JSON
-    payload = request.json
+    # Get the event type from headers
+    event_type = request.headers.get('X-GitHub-Event')
 
-    # Check if the event type is 'push'
-    if 'push' in payload.get('event', {}).get('name', ''):
+    # Check if it's a push event
+    if event_type == 'push':
         # Run the deployment script
-        run(["bash", "deploy.sh"])
+        subprocess.run(["./deploy.sh"])
 
         return "Webhook received and deployment triggered."
 
