@@ -125,6 +125,10 @@ def download_video():
 
     return redirect(video_url)
 
+def time_to_seconds(time_str):
+    h, m, s = map(int, time_str.split(':'))
+    return h * 3600 + m * 60 + s
+
 def extract_subtitles_by_time(subtitle_text, start_time, end_time):
     lines = subtitle_text.strip().split('\n')
     extracted_lines = []
@@ -134,11 +138,13 @@ def extract_subtitles_by_time(subtitle_text, start_time, end_time):
     for line in lines:
         if '-->' in line:
             current_time = line.split('-->')[0].strip()
+            current_time_seconds = time_to_seconds(current_time)
 
-        if current_time and start_time <= current_time <= end_time:
+        if current_time and start_time <= current_time_seconds <= end_time:
             extracted_lines.append(line)
 
     return '\n'.join(extracted_lines)
+
 
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
@@ -166,6 +172,9 @@ def download_subtitles():
             subtitle_url = subtitles
 
         subtitle_text = requests.get(subtitle_url).text
+
+        start_time_seconds = time_to_seconds(start_time)
+        end_time_seconds = time_to_seconds(end_time)
 
         if start_time and end_time:
             extracted_subtitles = extract_subtitles_by_time(subtitle_text, start_time, end_time)
