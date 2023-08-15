@@ -129,7 +129,7 @@ def download_video():
 def download_subtitles():
     video_link = request.args.get('link')
     lang = request.args.get('lang', 'en')  # Default to English if not provided
-    output_format = request.args.get('format', 'srt')  # Default to SRT format if not provided
+    output_format = request.args.get('format', 'json')  # Default to SRT format if not provided
     start_time = request.args.get('start_time')  # Start time for subtitles extraction (in HH:MM:SS format)
     end_time = request.args.get('end_time')  # End time for subtitles extraction (in HH:MM:SS format)
 
