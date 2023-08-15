@@ -183,8 +183,11 @@ def download_subtitles():
 
             subtitle_data = requests.get(subtitle_url).json()
 
-            extracted_subtitles = extract_subtitles_by_time(subtitle_data, start_time, end_time)
-            extracted_subtitles_cleaned = [html.unescape(segment['utf8']) for segment in extracted_subtitles['segs']]
+            # Convert Unicode escape sequences to normal text
+            extracted_subtitles_cleaned = [
+                html.unescape(segment['utf8']) for segment in subtitle_data[0]['segs']
+            ]
+
             extracted_subtitles_json = json.dumps(extracted_subtitles_cleaned)
 
             response = {
@@ -198,7 +201,6 @@ def download_subtitles():
 
     except Exception as e:
         return f"Error downloading subtitles: {str(e)}", 500
-
         
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
