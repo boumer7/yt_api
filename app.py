@@ -180,9 +180,10 @@ def download_subtitles():
             else:
                 subtitle_url = subtitles
 
-            subtitle_data = requests.get(subtitle_url).json()
+            subtitle_data = requests.get(subtitle_url).text
+            subtitle_json = json.loads(subtitle_data)
 
-            extracted_subtitles = extract_subtitles_by_time(subtitle_data, start_time, end_time)
+            extracted_subtitles = extract_subtitles_by_time(subtitle_json, start_time, end_time)
             decoded_subtitles = [line.encode().decode('unicode_escape') for line in extracted_subtitles]
 
             response = {
