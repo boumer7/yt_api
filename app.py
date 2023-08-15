@@ -55,6 +55,13 @@ def download_audio():
     link = request.args.get('link')
     quality = request.args.get('quality', 'bestaudio')  # Default to 'bestaudio' if not provided
 
+    if quality == 'low':
+        quality = 'worstaudio'
+    elif quality == 'medium':
+        quality = '140'
+    elif quality == 'high':
+        quality = 'bestaudio'
+    
     ydl_opts = {
         'format': quality,
     }
@@ -77,10 +84,17 @@ def download_audio():
 @app.route('/download_video', methods=['GET'])
 def download_video():
     link = request.args.get('link')
-    format_code = request.args.get('format', 'best')  # Default to 'best' if not provided
+    quality = request.args.get('quality', 'best')  # Default to 'best' if not provided
 
+    if quality == 'low':
+        quality = 'worstvideo'
+    elif quality == 'medium':
+        quality = '135'
+    elif quality == 'high':
+        quality = 'best'
+    
     ydl_opts = {
-        'format': format_code,
+        'format': quality,
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
@@ -88,21 +102,6 @@ def download_video():
         video_url = info_dict['url']
 
     return redirect(video_url)
-
-@app.route('/download_clip', methods=['GET'])
-def download_clip():
-    link = request.args.get('link')
-
-    ydl_opts = {
-        'format': 'best',
-        'extract-clip': True,
-    }
-
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(link, download=False)
-        clip_url = info_dict['url']
-
-    return redirect(clip_url)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
