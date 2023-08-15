@@ -1,4 +1,3 @@
-#!/bin/bash
 
 # Pull latest changes from the repository
 git pull
