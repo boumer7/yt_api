@@ -53,48 +53,36 @@ def webhook():
 @app.route('/download_audio', methods=['GET'])
 def download_audio():
     link = request.args.get('link')
-    quality = request.args.get('quality', 'high')
+    format_code = request.args.get('format', 'bestaudio')  # Default to 'bestaudio' if not provided
 
-    try:
-        ydl_opts = {
-            'format': f'bestaudio/{quality}',
-            'extractaudio': True,
-            'audioformat': 'mp3',
-            'outtmpl': 'downloads/%(title)s.%(ext)s',
-        }
+    ydl_opts = {
+        'format': format_code,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',  # Convert to MP3 format
+        }],
+    }
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(link, download=True)
-            audio_filename = f"downloads/{info_dict['title']}.mp3"
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(link, download=False)
+        audio_url = info_dict['url']
 
-        return send_file(audio_filename, as_attachment=True)
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
-
-from flask import Flask, request, jsonify, send_file
-import yt_dlp
-
-app = Flask(__name__)
+    return send_file(audio_url, as_attachment=True)
 
 @app.route('/download_video', methods=['GET'])
 def download_video():
     link = request.args.get('link')
     format_code = request.args.get('format', 'best')  # Default to 'best' if not provided
 
-    try:
-        ydl_opts = {
-            'format': format_code,
-        }
+    ydl_opts = {
+        'format': format_code,
+    }
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(link, download=False)
-            video_url = info_dict['url']
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(link, download=False)
+        video_url = info_dict['url']
 
-        return redirect(video_url)
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)})
+    return send_file(video_url, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
