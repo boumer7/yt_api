@@ -145,7 +145,6 @@ def extract_subtitles_by_time(subtitle_text, start_time, end_time):
 
     return '\n'.join(extracted_lines)
 
-
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
