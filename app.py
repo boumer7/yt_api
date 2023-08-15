@@ -4,7 +4,7 @@ import hmac
 import hashlib
 from subprocess import run
 import subprocess
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, redirect
 import yt_dlp
 import logging
 
@@ -72,6 +72,11 @@ def download_audio():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
+from flask import Flask, request, jsonify, send_file
+import yt_dlp
+
+app = Flask(__name__)
+
 @app.route('/download_video', methods=['GET'])
 def download_video():
     link = request.args.get('link')
@@ -86,7 +91,7 @@ def download_video():
             info_dict = ydl.extract_info(link, download=False)
             video_url = info_dict['url']
 
-        return send_file(video_url, as_attachment=True)
+        return redirect(video_url)
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
