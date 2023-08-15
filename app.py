@@ -26,10 +26,11 @@ def webhook():
 
     # Check if it's a push event
     if event_type == 'push':
-        # Run the deployment script
-        subprocess.run(["./deploy.sh"])
-
-        return "Webhook received and deployment triggered."
+        try:
+            subprocess.run(["./deploy.sh"], check=True, shell=True)
+            return "Webhook received and deployment triggered."
+        except subprocess.CalledProcessError as e:
+            return f"Error triggering deployment: {str(e)}", 500
 
     return "Webhook received, but no action taken."
 
