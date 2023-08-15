@@ -83,26 +83,40 @@ def download_audio():
 
 @app.route('/download_video', methods=['GET'])
 def download_video():
-    link = request.args.get('link')
+    video_link = request.args.get('link')
     quality = request.args.get('quality', 'high')  # Default to 'high' if not provided
 
-    if quality == 'low':
-        quality = '480'
-    elif quality == 'medium':
-        quality = '720'
-    elif quality == 'high':
-        quality = '1080'
-    
     ydl_opts = {
-        'format': f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]',
-        '--embed-subs': True,  # Embed subtitles (include audio)
+        'format': 'best',
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(link, download=False)
-        video_url = info_dict['url']
+        info_dict = ydl.extract_info(video_link, download=False)
+        formats = info_dict.get('formats', [])
+        
+        # Determine the desired format based on quality
+        if quality == 'low':
+            format_id = '134'  # 480p format
+        elif quality == 'medium':
+            format_id = '22'   # 720p format
+        elif quality == 'high':
+            format_id = '137'  # 1080p format
+        else:
+            return "Invalid quality parameter."
+
+        # Find the format in the formats list
+        selected_format = next((f for f in formats if f['format_id'] == format_id), None)
+
+        if not selected_format:
+            return f"No available format for quality: {quality}."
+
+        video_url = selected_format.get('url')
+
+        if not video_url:
+            return "No video URL found for the selected format."
 
     return redirect(video_url)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
