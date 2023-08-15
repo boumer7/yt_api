@@ -33,6 +33,7 @@ def webhook():
 
     if event_type == 'push':
         try:
+            os.environ['PATH'] = '/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
             subprocess.call(['sh', './deploy.sh'])
             return "Webhook received and deployment triggered."
         except subprocess.CalledProcessError as e:
