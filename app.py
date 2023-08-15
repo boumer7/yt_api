@@ -94,6 +94,11 @@ def download_video():
         info_dict = ydl.extract_info(video_link, download=False)
         formats = info_dict.get('formats', [])
         
+        # Filter formats based on quality and the presence of both audio and video
+        filtered_formats = [f for f in formats if (
+            'acodec' in f and 'vcodec' in f and f['acodec'] != 'none' and f['vcodec'] != 'none'
+        )]
+        
         # Determine the desired format based on quality
         if quality == 'low':
             format_id = '134'  # 480p format
@@ -104,8 +109,8 @@ def download_video():
         else:
             return "Invalid quality parameter."
 
-        # Find the format in the formats list
-        selected_format = next((f for f in formats if f['format_id'] == format_id), None)
+        # Find the format in the filtered formats list
+        selected_format = next((f for f in filtered_formats if f['format_id'] == format_id), None)
 
         if not selected_format:
             return f"No available format for quality: {quality}."
@@ -116,7 +121,6 @@ def download_video():
             return "No video URL found for the selected format."
 
     return redirect(video_url)
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
