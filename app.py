@@ -65,7 +65,7 @@ def download_audio():
         
         # Find a direct audio URL (not .m3u8)
         for f in info_dict['formats']:
-            if f['acodec'] != 'none' and 'url' in f:
+            if 'acodec' in f and f['acodec'] != 'none' and 'url' in f:
                 audio_url = f['url']
                 break
         
