@@ -1,6 +1,6 @@
 
 # Pull latest changes from the repository
-git pull
+git pull origin main
 
 # Rebuild the Docker image
 docker build -t yt-api .
