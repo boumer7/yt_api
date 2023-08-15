@@ -135,22 +135,20 @@ def time_to_seconds(time_str):
 def extract_subtitles_by_time(subtitle_data, start_time, end_time):
     extracted_lines = []
 
-    events = subtitle_data.get("events", [])
+    for event in subtitle_data['events']:
+        t_start_ms = event['tStartMs']
+        d_duration_ms = event['dDurationMs']
 
-    for event in events:
-        t_start_ms = event.get("tStartMs", 0)
-        d_duration_ms = event.get("dDurationMs", 0)
+        if start_time * 1000 <= t_start_ms <= end_time * 1000:
+            segs = event['segs']
+            segment_texts = [seg['utf8'] for seg in segs]
+            extracted_lines.extend(segment_texts)
 
-        t_start_seconds = t_start_ms / 1000
-        t_end_seconds = t_start_seconds + (d_duration_ms / 1000)
-
-        if start_time <= t_start_seconds <= end_time or start_time <= t_end_seconds <= end_time:
-            segs = event.get("segs", [])
-            for seg in segs:
-                utf8_text = seg.get("utf8", "")
-                extracted_lines.append(utf8_text)
+            if t_start_ms + d_duration_ms > end_time * 1000:
+                break
 
     return extracted_lines
+
 
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
