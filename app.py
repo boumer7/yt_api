@@ -7,7 +7,6 @@ import subprocess
 from flask import Flask, request, jsonify, send_file, redirect
 import yt_dlp
 import logging
-import youtube_dl
 
 from dotenv import load_dotenv
 
