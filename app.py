@@ -142,7 +142,7 @@ def download_subtitles():
         selected_subtitles = subtitles.get(lang) or subtitles.get('auto')
 
         if not selected_subtitles:
-            return f"No subtitles found for language: {lang}."
+            return f"No subtitles found for language: {lang}. Using automatic subtitles."
 
         subtitles_url = selected_subtitles[0]['url']
 
