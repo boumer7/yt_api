@@ -130,17 +130,13 @@ def extract_subtitles_by_time(subtitle_text, start_time, end_time):
     extracted_lines = []
 
     current_time = None
-    in_range = False
 
     for line in lines:
         if '-->' in line:
             current_time = line.split('-->')[0].strip()
-            if current_time == start_time:
-                in_range = True
-        if in_range:
+
+        if current_time and start_time <= current_time <= end_time:
             extracted_lines.append(line)
-            if current_time == end_time:
-                break
 
     return '\n'.join(extracted_lines)
 
