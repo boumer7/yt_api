@@ -35,14 +35,13 @@ def webhook():
         try:
             script_path = os.path.join(os.path.dirname(__file__), 'deploy.sh')
             print("Script path:", script_path)
-            result = subprocess.run([script_path], check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(['bash', script_path], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print("Script execution result:", result.returncode)
             print("Script stdout:", result.stdout.decode())
             print("Script stderr:", result.stderr.decode())
             return "Webhook received and deployment triggered."
         except subprocess.CalledProcessError as e:
             return f"Error triggering deployment: {str(e)}", 500
-
 
     return "Webhook received, but no action taken."
 
