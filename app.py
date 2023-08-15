@@ -151,7 +151,6 @@ def extract_subtitles_by_time(subtitle_data, start_time, end_time):
 
     return extracted_lines
 
-
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
@@ -184,11 +183,11 @@ def download_subtitles():
             subtitle_data = requests.get(subtitle_url).json()
 
             extracted_subtitles = extract_subtitles_by_time(subtitle_data, start_time, end_time)
-            extracted_subtitles_json = json.dumps(extracted_subtitles)
+            decoded_subtitles = [line.encode().decode('unicode_escape') for line in extracted_subtitles]
 
             response = {
                 "language": "en",
-                "subtitles": extracted_subtitles_json
+                "subtitles": decoded_subtitles
             }
 
             return jsonify(response)
@@ -197,7 +196,6 @@ def download_subtitles():
 
     except Exception as e:
         return f"Error downloading subtitles: {str(e)}", 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
