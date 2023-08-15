@@ -80,14 +80,13 @@ def download_video():
     try:
         ydl_opts = {
             'format': format_code,
-            'outtmpl': 'downloads/%(title)s.%(ext)s',
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(link, download=True)
-            video_filename = f"downloads/{info_dict['title']}.mp4"
+            info_dict = ydl.extract_info(link, download=False)
+            video_url = info_dict['url']
 
-        return send_file(video_filename, as_attachment=True)
+        return send_file(video_url, as_attachment=True)
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
