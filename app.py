@@ -141,12 +141,13 @@ def extract_subtitles_by_time(subtitle_data, start_time, end_time):
 
         if start_time * 1000 <= t_start_ms <= end_time * 1000:
             segs = event['segs']
-            extracted_lines.extend(seg['utf8'].encode('utf-8').decode('unicode-escape') for seg in segs)
+            extracted_lines.extend(seg['utf8'] for seg in segs)
 
             if t_start_ms + d_duration_ms > end_time * 1000:
                 break
 
-    return extracted_lines
+    decoded_lines = [html.unescape(line).encode('utf-8').decode('utf-8') for line in extracted_lines]
+    return decoded_lines
 
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
