@@ -33,8 +33,14 @@ def webhook():
 
     if event_type == 'push':
         try:
-            os.environ['PATH'] = '/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-            subprocess.call(['sh', './deploy.sh'])
+            env = os.environ.copy()
+            env['PATH'] = '/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+            # Get the absolute path to the deploy.sh script
+            script_path = os.path.join(os.path.dirname(__file__), 'deploy.sh')
+
+            subprocess.call(['sh', script_path], shell=True, env=env)
+
             return "Webhook received and deployment triggered."
         except subprocess.CalledProcessError as e:
             return f"Error triggering deployment: {str(e)}", 500
