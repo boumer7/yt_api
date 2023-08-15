@@ -5,7 +5,7 @@ import hashlib
 from subprocess import run
 import subprocess
 from flask import Flask, request, jsonify, send_file, redirect
-import yt_dlp
+import yt_dlp as youtube_dl
 import logging
 
 from dotenv import load_dotenv
