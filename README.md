@@ -8,4 +8,4 @@ Deutsch
 Ja
 Ja
 JAd
-
+genau
