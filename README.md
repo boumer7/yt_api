@@ -1,28 +1,3 @@
-# yt_api j
-ddd
-v1kjghkjhgkhj
-v2
-v3
-v4
-Deutsch
-Ja
-Ja
-JAd
-genaukjhkgjhkghkjghkffff
-hfghgfhfg
-ggggggggggggggggg
-aaaaaaaaaaaaa
-zzzzzzzzzzzzzzzzzzzz
-hhhhhhh
-hgffhhhhhhhhhhhhhhhhhhhhhhhhsssssssssssssssssssssssssss
+# yt_api
 
-DANCE DANCE
-jjjjjjjjjjjjjjjjjjjjjjjjjjjjsasasasa
-yeah..xxx
-dsadasdsadd
-DAMOE:
-
-DANON
-CMON
-
-Dsdsdsds
+Имплементация взаимодействия с роликами YouTube всеразличными методами на приватном API. 
