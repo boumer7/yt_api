@@ -23,6 +23,9 @@ def webhook():
     signature = request.headers.get('X-Hub-Signature')
     event_type = request.headers.get('X-GitHub-Event')
     
+    print("Signature:", signature)
+    print("Event Type:", event_type)
+    
     if not is_valid_signature(request.data, signature, SECRET_TOKEN):
         return "Unauthorized", 401
 
@@ -34,6 +37,7 @@ def webhook():
             return f"Error triggering deployment: {str(e)}", 500
     
     return "Webhook received, but no action taken."
+
 
 @app.route('/download_audio', methods=['POST'])
 def download_audio():
