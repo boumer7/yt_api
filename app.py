@@ -6,6 +6,7 @@ from subprocess import run
 import subprocess
 from flask import Flask, request, jsonify
 import yt_dlp
+import logging
 
 from dotenv import load_dotenv
 
