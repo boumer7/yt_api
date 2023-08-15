@@ -14,6 +14,7 @@ app = Flask(__name__)
 # Retrieve the secret token from the environment variable
 SECRET_TOKEN = os.environ.get('SECRET_TOKEN')
 
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     # Validate the incoming request using the secret token
@@ -24,8 +25,8 @@ def webhook():
     # Parse the payload JSON
     payload = request.json
 
-    # Check if it's a push event
-    if 'push' in payload.get('event', ''):
+    # Check if the event type is 'push'
+    if 'push' in payload.get('event', {}).get('name', ''):
         # Run the deployment script
         run(["bash", "deploy.sh"])
 
