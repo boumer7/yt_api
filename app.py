@@ -129,27 +129,26 @@ def time_to_seconds(time_str):
     h, m, s = map(int, time_str.split(':'))
     return h * 3600 + m * 60 + s
 
-def extract_subtitles_by_time(subtitle_text, start_time, end_time):
-    lines = subtitle_text.strip().split('\n')
-    extracted_lines = []
+def extract_subtitles_by_time(subtitle_data, start_time, end_time):
+    segments = subtitle_data.get('events', [])
 
-    current_time = None
+    extracted_segments = []
+    current_time_seconds = None
 
-    for line in lines:
-        if '-->' in line:
-            current_time = line.split('-->')[0].strip()
-            current_time_seconds = time_to_seconds(current_time)
+    for segment in segments:
+        start_ms = segment.get('tStartMs', 0)
+        end_ms = start_ms + segment.get('dDurationMs', 0)
+        
+        if start_time <= start_ms <= end_time or start_time <= end_ms <= end_time:
+            extracted_segments.append(segment)
 
-        if current_time and start_time <= current_time_seconds <= end_time:
-            extracted_lines.append(line)
-
-    return '\n'.join(extracted_lines)
+    return extracted_segments
 
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
-    start_time = request.args.get('start_time')
-    end_time = request.args.get('end_time')
+    start_time = int(request.args.get('start_time', 0))
+    end_time = int(request.args.get('end_time', float('inf')))
 
     try:
         ydl_opts = {
@@ -171,17 +170,17 @@ def download_subtitles():
             else:
                 subtitle_url = subtitles
 
-            subtitle_text = requests.get(subtitle_url).text
+            subtitle_data = requests.get(subtitle_url).json()
 
-            if start_time and end_time and subtitle_text:
-                extracted_subtitles = extract_subtitles_by_time(subtitle_text, start_time, end_time)
-            else:
-                extracted_subtitles = subtitle_text
+            extracted_subtitles = extract_subtitles_by_time(subtitle_data, start_time, end_time)
+            extracted_subtitles_json = json.dumps(extracted_subtitles)
 
-            return jsonify({
+            response = {
                 "language": "en",
-                "subtitles": extracted_subtitles
-            })
+                "subtitles": extracted_subtitles_json
+            }
+
+            return jsonify(response)
         else:
             return "No English subtitles available for the provided link."
 
