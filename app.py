@@ -125,11 +125,34 @@ def download_video():
 
     return redirect(video_url)
 
+def extract_subtitles_by_time(subtitle_text, start_time, end_time):
+    lines = subtitle_text.strip().split('\n')
+    extracted_lines = []
+
+    start_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(start_time.split(':'))))
+    end_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(end_time.split(':'))))
+
+    current_time = None
+    in_range = False
+
+    for line in lines:
+        if '-->' in line:
+            current_time = line.split('-->')[0].strip()
+            current_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(current_time.split(':'))))
+            if start_seconds <= current_seconds <= end_seconds:
+                in_range = True
+            else:
+                in_range = False
+        if in_range:
+            extracted_lines.append(line)
+
+    return '\n'.join(extracted_lines)
+
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
     lang = request.args.get('lang', 'en')  # Default to English if not provided
-    output_format = request.args.get('format', 'json')  # Default to SRT format if not provided
+    output_format = request.args.get('format', 'srt')  # Default to SRT format if not provided
     start_time = request.args.get('start_time')  # Start time for subtitles extraction (in HH:MM:SS format)
     end_time = request.args.get('end_time')  # End time for subtitles extraction (in HH:MM:SS format)
 
@@ -158,36 +181,19 @@ def download_subtitles():
 
             subtitle_text = requests.get(subtitle_url).text
 
-            # Extract the desired time range from the subtitles text
             if start_time and end_time:
-                start_seconds = int(start_time.split(':')[0]) * 3600 + int(start_time.split(':')[1]) * 60 + int(start_time.split(':')[2])
-                end_seconds = int(end_time.split(':')[0]) * 3600 + int(end_time.split(':')[1]) * 60 + int(end_time.split(':')[2])
-
-                lines = []
-                in_range = False
-                for line in subtitle_text.split('\n'):
-                    if '-->' in line:
-                        line_start = line.split(' --> ')[0]
-                        line_start_seconds = int(line_start.split(':')[0]) * 3600 + int(line_start.split(':')[1]) * 60 + int(line_start.split(':')[2])
-                        if start_seconds <= line_start_seconds <= end_seconds:
-                            in_range = True
-                        else:
-                            in_range = False
-                    if in_range:
-                        lines.append(line)
-
-                filtered_subtitle_text = '\n'.join(lines)
+                extracted_subtitles = extract_subtitles_by_time(subtitle_text, start_time, end_time)
             else:
-                filtered_subtitle_text = subtitle_text
+                extracted_subtitles = subtitle_text
 
             if output_format == 'json':
                 subtitle_data = {
                     'language': lang,
-                    'subtitles': filtered_subtitle_text,
+                    'subtitles': extracted_subtitles,
                 }
                 return jsonify(subtitle_data)
             elif output_format == 'srt':
-                response = make_response(filtered_subtitle_text)
+                response = make_response(extracted_subtitles)
                 response.headers['Content-Type'] = 'text/plain'
                 response.headers['Content-Disposition'] = f'attachment; filename=subtitles_{lang}.{output_format}'
                 return response
