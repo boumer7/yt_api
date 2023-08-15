@@ -156,8 +156,8 @@ def extract_subtitles_by_time(subtitle_data, start_time, end_time):
 def download_subtitles():
     video_link = request.args.get('link')
     start_time_str = request.args.get('start_time', '00:00:00')
-    end_time_str = request.args.get('end_time', '99:59:59')  # A large default value
-
+    end_time_str = request.args.get('end_time', '99:59:59')
+    
     start_time = time_to_seconds(start_time_str)
     end_time = time_to_seconds(end_time_str)
 
@@ -183,16 +183,11 @@ def download_subtitles():
 
             subtitle_data = requests.get(subtitle_url).json()
 
-            # Convert Unicode escape sequences to normal text
-            extracted_subtitles_cleaned = [
-                html.unescape(segment['utf8']) for segment in subtitle_data[0]['segs']
-            ]
-
-            extracted_subtitles_json = json.dumps(extracted_subtitles_cleaned)
-
+            extracted_subtitles = extract_subtitles_by_time(subtitle_data, start_time, end_time)
+            
             response = {
                 "language": "en",
-                "subtitles": extracted_subtitles_json
+                "subtitles": extracted_subtitles
             }
 
             return jsonify(response)
@@ -201,6 +196,7 @@ def download_subtitles():
 
     except Exception as e:
         return f"Error downloading subtitles: {str(e)}", 500
+
         
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
