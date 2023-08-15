@@ -33,11 +33,7 @@ def webhook():
 
     if event_type == 'push':
         try:
-            process = subprocess.run(["./deploy.sh"], check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print("Deploy Script Output (stdout):")
-            print(process.stdout.decode('utf-8'))
-            print("Deploy Script Errors (stderr):")
-            print(process.stderr.decode('utf-8'))
+            os.system("sh deploy.sh")
             return "Webhook received and deployment triggered."
         except subprocess.CalledProcessError as e:
             return f"Error triggering deployment: {str(e)}", 500
