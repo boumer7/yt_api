@@ -1,10 +1,14 @@
 #!/bin/bash
 
+
 # Pull latest changes from the repository
 git pull origin main
 
 # Full path to the 'docker' executable
 DOCKER_EXECUTABLE=/usr/bin/docker
+
+echo "PATH: $PATH"
+echo "DOCKER_EXECUTABLE: $DOCKER_EXECUTABLE"
 
 # Rebuild the Docker image
 $DOCKER_EXECUTABLE build -t yt-api .
