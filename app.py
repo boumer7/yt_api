@@ -126,7 +126,6 @@ def download_video():
     return redirect(video_url)
 
 @app.route('/download_subtitles', methods=['GET'])
-@app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
     lang = request.args.get('lang', 'en')  # Default to English if not provided
@@ -141,22 +140,18 @@ def download_subtitles():
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(video_link, download=False)
 
-            # Check if the video has subtitles for the specified language
             if 'subtitles' in info_dict and lang in info_dict['subtitles']:
-                subtitle_url = info_dict['subtitles'][lang]
+                subtitles = info_dict['subtitles'][lang]
+            elif 'automatic_captions' in info_dict and lang in info_dict['automatic_captions']:
+                subtitles = info_dict['automatic_captions'][lang]
             else:
-                # If not found, use automatic subtitles
-                subtitle_url = None
-                if 'automatic_captions' in info_dict:
-                    for auto_lang, auto_info in info_dict['automatic_captions'].items():
-                        if auto_info['ext'] == 'vtt' and auto_info['language'] == lang:
-                            subtitle_url = auto_info['url']
-                            break
+                return f"No subtitles found for language: {lang}. Using automatic subtitles as a last resort."
 
-                if not subtitle_url:
-                    return f"No subtitles found for language: {lang}. Using automatic subtitles as a last resort."
+            if isinstance(subtitles, list):
+                subtitle_url = subtitles[0]['url']
+            else:
+                subtitle_url = subtitles
 
-            # Download the subtitles file and return it as a response
             subtitle_file = requests.get(subtitle_url).content
             response = make_response(subtitle_file)
             response.headers['Content-Type'] = 'text/plain'
