@@ -5,6 +5,10 @@ from subprocess import run
 from flask import Flask, request, jsonify
 import yt_dlp
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 app = Flask(__name__)
 
 # Retrieve the secret token from the environment variable
