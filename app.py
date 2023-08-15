@@ -129,6 +129,7 @@ def time_to_seconds(time_str):
     h, m, s = map(int, time_str.split(':'))
     return h * 3600 + m * 60 + s
 
+
 def extract_subtitles_by_time(subtitle_data, start_time, end_time):
     segments = subtitle_data.get('events', [])
 
@@ -147,8 +148,11 @@ def extract_subtitles_by_time(subtitle_data, start_time, end_time):
 @app.route('/download_subtitles', methods=['GET'])
 def download_subtitles():
     video_link = request.args.get('link')
-    start_time = int(request.args.get('start_time', 0))
-    end_time = int(request.args.get('end_time', float('inf')))
+    start_time_str = request.args.get('start_time', '00:00:00')
+    end_time_str = request.args.get('end_time', '99:59:59')  # A large default value
+
+    start_time = time_to_seconds(start_time_str)
+    end_time = time_to_seconds(end_time_str)
 
     try:
         ydl_opts = {
