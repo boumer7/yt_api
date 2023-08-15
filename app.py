@@ -94,7 +94,7 @@ def download_video():
         info_dict = ydl.extract_info(video_link, download=False)
         formats = info_dict.get('formats', [])
         
-        # Filter formats based on quality and the presence of both audio and video
+        # Filter formats based on the presence of both audio and video
         filtered_formats = [f for f in formats if (
             'acodec' in f and 'vcodec' in f and f['acodec'] != 'none' and f['vcodec'] != 'none'
         )]
@@ -109,8 +109,10 @@ def download_video():
         else:
             return "Invalid quality parameter."
 
-        # Find the format in the filtered formats list
+        # Find the closest available format to the desired format
         selected_format = next((f for f in filtered_formats if f['format_id'] == format_id), None)
+        if not selected_format:
+            selected_format = min(filtered_formats, key=lambda f: abs(int(f['format_id']) - int(format_id)), default=None)
 
         if not selected_format:
             return f"No available format for quality: {quality}."
