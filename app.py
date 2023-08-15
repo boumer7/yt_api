@@ -140,9 +140,6 @@ def download_subtitles():
         'subtitlesformat': 'vtt',  # Force VTT subtitles format for time-based extraction
     }
 
-    if start_time and end_time:
-        ydl_opts['subtitlesfromtimerange'] = f'{start_time}-{end_time}'
-
     try:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(video_link, download=False)
@@ -159,16 +156,38 @@ def download_subtitles():
             else:
                 subtitle_url = subtitles
 
-            subtitle_file = requests.get(subtitle_url).content
+            subtitle_text = requests.get(subtitle_url).text
+
+            # Extract the desired time range from the subtitles text
+            if start_time and end_time:
+                start_seconds = int(start_time.split(':')[0]) * 3600 + int(start_time.split(':')[1]) * 60 + int(start_time.split(':')[2])
+                end_seconds = int(end_time.split(':')[0]) * 3600 + int(end_time.split(':')[1]) * 60 + int(end_time.split(':')[2])
+
+                lines = []
+                in_range = False
+                for line in subtitle_text.split('\n'):
+                    if '-->' in line:
+                        line_start = line.split(' --> ')[0]
+                        line_start_seconds = int(line_start.split(':')[0]) * 3600 + int(line_start.split(':')[1]) * 60 + int(line_start.split(':')[2])
+                        if start_seconds <= line_start_seconds <= end_seconds:
+                            in_range = True
+                        else:
+                            in_range = False
+                    if in_range:
+                        lines.append(line)
+
+                filtered_subtitle_text = '\n'.join(lines)
+            else:
+                filtered_subtitle_text = subtitle_text
 
             if output_format == 'json':
                 subtitle_data = {
                     'language': lang,
-                    'subtitles': subtitle_file.decode('utf-8')
+                    'subtitles': filtered_subtitle_text,
                 }
                 return jsonify(subtitle_data)
             elif output_format == 'srt':
-                response = make_response(subtitle_file)
+                response = make_response(filtered_subtitle_text)
                 response.headers['Content-Type'] = 'text/plain'
                 response.headers['Content-Disposition'] = f'attachment; filename=subtitles_{lang}.{output_format}'
                 return response
